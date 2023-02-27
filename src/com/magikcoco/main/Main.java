@@ -1,7 +1,6 @@
 package com.magikcoco.main;
 
 import javafx.application.Application;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -14,25 +13,28 @@ import java.io.InputStreamReader;
 
 public class Main extends Application {
 
+    private TextArea textArea;
+    private TextField textField;
+
     @Override
     public void start(Stage stage) throws Exception{
         double height = 480.0;
         double width = 640.0;
 
-        TextArea textArea = new TextArea();
+        textArea = new TextArea();
         textArea.setPrefHeight(height-40);
         textArea.setPrefWidth(width-15);
         textArea.setLayoutY(7.5);
         textArea.setLayoutX(7.5);
         textArea.setDisable(true);
 
-        TextField textField = new TextField();
+        textField = new TextField();
         textField.setPrefHeight(25);
         textField.setPrefWidth(width-15);
         textField.setLayoutY(textArea.getPrefHeight()+10);
         textField.setLayoutX(7.5);
         textField.setOnKeyPressed(event -> {
-            handleGuiKeyPress(event, textField, textArea);
+            handleGuiKeyPress(event);
         });
 
         AnchorPane root = new AnchorPane();
@@ -50,14 +52,6 @@ public class Main extends Application {
         });
 
         stage.show();
-    }
-
-    private void handleGuiKeyPress(KeyEvent event, TextField textField, TextArea textArea) {
-        if(event.getCode() == KeyCode.ENTER){
-            textArea.clear();
-            textArea.setText(textField.getText());
-            textField.clear();
-        }
     }
 
 
@@ -105,5 +99,127 @@ public class Main extends Application {
                 "play - start a game in the console\n" +
                 "guiplay - start a game in a new window\n" +
                 "help - display this command list");
+    }
+
+    private void handleGuiKeyPress(KeyEvent event) {
+        if(event.getCode() == KeyCode.ENTER){
+            String lastPrompt = textArea.getText();
+            String[] commands = textField.getText().strip().toLowerCase().split(" ");
+            String newPrompt = handleGameCommands(commands);
+            if(!newPrompt.equalsIgnoreCase("")){
+                textArea.setText(lastPrompt+"\n\n"+newPrompt);
+            } else {
+                newPrompt = "Command failure";
+                textArea.setText(lastPrompt+"\n\n"+newPrompt);
+            }
+            textField.clear();
+        }
+    }
+
+    private static String handleGameCommands(String[] commands){
+        String returnString = "";
+        for(int i = 0; i < commands.length; i++){
+            if(commands[i].equalsIgnoreCase("help")){
+                //help command
+                returnString+= "Available commands are:\n" +
+                        "help - display this message\n" +
+                        "heading=[up/down/none]:[right/left/none]:[forward/backward/none] - change current heading\n" +
+                        "speed=[integer] - change your current speed\n\n";
+            } else if(commands[i].substring(0,8).equalsIgnoreCase("heading=")) {
+                //heading command
+                returnString += "Your heading has been changed to ";
+                String[] headingInfo = commands[i].substring(8).split(":");
+                int argCounter = 0;
+                boolean yFlag = false;
+                boolean xFlag = false;
+                boolean zFlag = false;
+                for(String direction : headingInfo){
+                    switch (direction){
+                        case "up":
+                            if(!yFlag){
+                                returnString += "up:";
+                                yFlag = true;
+                            } else {
+                                return "";
+                            }
+                            argCounter++;
+                            break;
+                        case "down":
+                            if(!yFlag){
+                                returnString += "down:";
+                                yFlag = true;
+                            } else {
+                                return "";
+                            }
+                            argCounter++;
+                            break;
+                        case "right":
+                            if(!xFlag){
+                                returnString += "right:";
+                                xFlag = true;
+                            } else {
+                                return "";
+                            }
+                            argCounter++;
+                            break;
+                        case "left":
+                            if(!xFlag){
+                                returnString += "left:";
+                                xFlag = true;
+                            } else {
+                                return "";
+                            }
+                            argCounter++;
+                            break;
+                        case "forward":
+                            if(!zFlag){
+                                returnString += "forward\n\n";
+                                zFlag = true;
+                            } else {
+                                return "";
+                            }
+                            argCounter++;
+                            break;
+                        case "backward":
+                            if(!zFlag){
+                                returnString += "backward\n\n";
+                                zFlag = true;
+                            } else {
+                                return "";
+                            }
+                            argCounter++;
+                            break;
+                        case "none":
+                            if(argCounter == 0){
+                                returnString += "none:";
+                                yFlag = true;
+                            } else if(argCounter == 1) {
+                                returnString += "none:";
+                                xFlag = true;
+                            } else if(argCounter == 2) {
+                                returnString += "none\n\n";
+                                zFlag = true;
+                            } else {
+                                return "";
+                            }
+                            argCounter++;
+                            break;
+                        default:
+                            return ""; //command failure
+                    }
+                }
+            } else if(commands[i].substring(0,6).equalsIgnoreCase("speed=")) {
+                try{
+                    Integer newSpeed = Integer.parseInt(commands[i].substring(6));
+                    returnString += "Your new speed is "+newSpeed+"\n\n";
+                } catch(NumberFormatException e){
+                    return "";
+                }
+            } else {
+                return ""; //in case of unrecognized command, total command failure
+            }
+        }
+        //TODO: execute the commands
+        return returnString;
     }
 }
