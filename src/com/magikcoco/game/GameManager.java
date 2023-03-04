@@ -1,16 +1,17 @@
 package com.magikcoco.game;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
-public abstract class GameManager {
+import java.util.*;
 
-    public Map<String, Integer[]> gameCoordsMap;
+public class GameManager {
 
-    public void setBoard(int size){
+    public static Map<String, Integer[]> gameCoordsMap;
+    private static TextArea guiDisplay;
+    private static TextField guiPrompt;
+
+    public static void setBoard(int size){
         Random rand = new Random();
         List<String> gameElements = new ArrayList<>();
         gameElements.add("player");
@@ -24,5 +25,26 @@ public abstract class GameManager {
         for(String element : gameElements){
             gameCoordsMap.put(element, new Integer[]{rand.nextInt(size), rand.nextInt(size), rand.nextInt(size)});
         }
+    }
+
+    public static int[] randomCoordinates(int bound){
+        Random rand = new Random();
+        return new int[]{rand.nextInt(bound), rand.nextInt(bound), rand.nextInt(bound)};
+    }
+
+    public static void reportHandlerGui(String report){
+        if(guiDisplay != null){
+            String[] displayText = guiDisplay.getText().split("\n");
+            displayText[0] = report;
+            guiDisplay.setText(String.join("\n\n", Arrays.stream(displayText).filter(s -> !s.isEmpty()).toArray(String[]::new)));
+        }
+    }
+
+    public static void setGuiPrompt(TextField tf){
+        guiPrompt = tf;
+    }
+
+    public static void setGuiDisplay(TextArea ta){
+        guiDisplay = ta;
     }
 }

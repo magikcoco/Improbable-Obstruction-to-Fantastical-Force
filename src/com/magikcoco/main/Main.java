@@ -1,5 +1,8 @@
 package com.magikcoco.main;
 
+import com.magikcoco.game.CommandHandler;
+import com.magikcoco.game.GameManager;
+import com.magikcoco.game.PlayerCharacter;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
@@ -13,6 +16,7 @@ import java.io.InputStreamReader;
 
 public class Main extends Application {
 
+    private static PlayerCharacter player;
     private TextArea textArea;
     private TextField textField;
 
@@ -37,9 +41,14 @@ public class Main extends Application {
             handleGuiKeyPress(event);
         });
 
+        textArea.setText("Report: No information to display\n");
+
         AnchorPane root = new AnchorPane();
         root.getChildren().add(textArea);
         root.getChildren().add(textField);
+
+        GameManager.setGuiDisplay(textArea);
+        GameManager.setGuiPrompt(textField);
 
         Scene scene = new Scene(root, width, height);
 
@@ -56,6 +65,8 @@ public class Main extends Application {
 
 
     public static void main(String[] args) {
+        int[] coords = GameManager.randomCoordinates(100);
+        player = new PlayerCharacter(coords[0], coords[1], coords[2]);
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
@@ -105,7 +116,7 @@ public class Main extends Application {
         if(event.getCode() == KeyCode.ENTER){
             String lastPrompt = textArea.getText();
             String[] commands = textField.getText().strip().toLowerCase().split(" ");
-            String newPrompt = handleGameCommands(commands);
+            String newPrompt = CommandHandler.handleGameCommands(commands, player);
             if(!newPrompt.equalsIgnoreCase("")){
                 textArea.setText(lastPrompt+"\n\n"+newPrompt);
             } else {
@@ -114,112 +125,5 @@ public class Main extends Application {
             }
             textField.clear();
         }
-    }
-
-    private static String handleGameCommands(String[] commands){
-        String returnString = "";
-        for(int i = 0; i < commands.length; i++){
-            if(commands[i].equalsIgnoreCase("help")){
-                //help command
-                returnString+= "Available commands are:\n" +
-                        "help - display this message\n" +
-                        "heading=[up/down/none]:[right/left/none]:[forward/backward/none] - change current heading\n" +
-                        "speed=[integer] - change your current speed\n\n";
-            } else if(commands[i].substring(0,8).equalsIgnoreCase("heading=")) {
-                //heading command
-                returnString += "Your heading has been changed to ";
-                String[] headingInfo = commands[i].substring(8).split(":");
-                int argCounter = 0;
-                boolean yFlag = false;
-                boolean xFlag = false;
-                boolean zFlag = false;
-                for(String direction : headingInfo){
-                    switch (direction){
-                        case "up":
-                            if(!yFlag){
-                                returnString += "up:";
-                                yFlag = true;
-                            } else {
-                                return "";
-                            }
-                            argCounter++;
-                            break;
-                        case "down":
-                            if(!yFlag){
-                                returnString += "down:";
-                                yFlag = true;
-                            } else {
-                                return "";
-                            }
-                            argCounter++;
-                            break;
-                        case "right":
-                            if(!xFlag){
-                                returnString += "right:";
-                                xFlag = true;
-                            } else {
-                                return "";
-                            }
-                            argCounter++;
-                            break;
-                        case "left":
-                            if(!xFlag){
-                                returnString += "left:";
-                                xFlag = true;
-                            } else {
-                                return "";
-                            }
-                            argCounter++;
-                            break;
-                        case "forward":
-                            if(!zFlag){
-                                returnString += "forward\n\n";
-                                zFlag = true;
-                            } else {
-                                return "";
-                            }
-                            argCounter++;
-                            break;
-                        case "backward":
-                            if(!zFlag){
-                                returnString += "backward\n\n";
-                                zFlag = true;
-                            } else {
-                                return "";
-                            }
-                            argCounter++;
-                            break;
-                        case "none":
-                            if(argCounter == 0){
-                                returnString += "none:";
-                                yFlag = true;
-                            } else if(argCounter == 1) {
-                                returnString += "none:";
-                                xFlag = true;
-                            } else if(argCounter == 2) {
-                                returnString += "none\n\n";
-                                zFlag = true;
-                            } else {
-                                return "";
-                            }
-                            argCounter++;
-                            break;
-                        default:
-                            return ""; //command failure
-                    }
-                }
-            } else if(commands[i].substring(0,6).equalsIgnoreCase("speed=")) {
-                try{
-                    Integer newSpeed = Integer.parseInt(commands[i].substring(6));
-                    returnString += "Your new speed is "+newSpeed+"\n\n";
-                } catch(NumberFormatException e){
-                    return "";
-                }
-            } else {
-                return ""; //in case of unrecognized command, total command failure
-            }
-        }
-        //TODO: execute the commands
-        return returnString;
     }
 }
